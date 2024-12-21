@@ -1,0 +1,54 @@
+/**
+ * @param {number[][]} workers
+ * @param {number[][]} bikes
+ * @return {number}
+ */
+var assignBikes = function(workers, bikes) {
+    const n = workers.length;
+    const m = bikes.length;
+    
+    // 计算所有工人和自行车之间的距离
+    const distances = [];
+    for (let i = 0; i < n; i++) {
+        distances[i] = [];
+        for (let j = 0; j < m; j++) {
+            distances[i][j] = manhattanDistance(workers[i], bikes[j]);
+        }
+    }
+    
+    // dp[i]表示分配状态为i时的最小距离和
+    const dp = new Array(1 << m).fill(Infinity);
+    dp[0] = 0;
+    
+    // 遍历所有可能的分配状态
+    for (let state = 0; state < (1 << m); state++) {
+        const workerIndex = countBits(state);
+        if (workerIndex >= n) continue; // 已经分配完所有工人
+        
+        // 尝试分配一辆未分配的自行车给当前工人
+        for (let j = 0; j < m; j++) {
+            if ((state & (1 << j)) === 0) { // 自行车j未被分配
+                const nextState = state | (1 << j);
+                dp[nextState] = Math.min(dp[nextState], dp[state] + distances[workerIndex][j]);
+            }
+        }
+    }
+    
+    // 返回所有工人都被分配自行车的最小距离和
+    return dp[(1 << n) - 1];
+};
+
+// 计算曼哈顿距离
+function manhattanDistance(p1, p2) {
+    return Math.abs(p1[0] - p2[0]) + Math.abs(p1[1] - p2[1]);
+}
+
+// 计算二进制中1的个数
+function countBits(n) {
+    let count = 0;
+    while (n) {
+        n &= (n - 1);
+        count++;
+    }
+    return count;
+}
